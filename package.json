@@ -1,0 +1,9 @@
+{
+  "name": "redux-boilerplate",
+  "version": "0.0.1",
+  "description": "A bunch of stuff you're gonna implement anyway.",
+  "main": "index.js",
+  "repository": "git@github.com:alexthebake/redux-boilerplate.git",
+  "author": "Alex Bake <alexbake7@gmail.com>",
+  "license": "MIT"
+}
