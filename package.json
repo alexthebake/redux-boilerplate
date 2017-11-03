@@ -2,8 +2,25 @@
   "name": "redux-boilerplate",
   "version": "0.0.1",
   "description": "A bunch of stuff you're gonna implement anyway.",
-  "main": "index.js",
+  "scripts": {
+    "build": "webpack --config webpack.config.js --progress",
+    "watch": "webpack --watch --config webpack.config.js --progress"
+  },
+  "main": "dist/bundle.js",
   "repository": "git@github.com:alexthebake/redux-boilerplate.git",
   "author": "Alex Bake <alexbake7@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "^4.17.4",
+    "redux": "^3.7.2",
+    "redux-thunk": "^2.2.0"
+  },
+  "devDependencies": {
+    "babel": "^6.23.0",
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.1",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "webpack": "^3.5.5"
+  }
 }
