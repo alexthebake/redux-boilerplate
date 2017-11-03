@@ -1,6 +1,6 @@
 {
-  "name": "redux-boilerplate",
-  "version": "0.0.1",
+  "name": "@thebasement/redux-boilerplate",
+  "version": "0.0.3",
   "description": "A bunch of stuff you're gonna implement anyway.",
   "scripts": {
     "build": "webpack --config webpack.config.js --progress",
