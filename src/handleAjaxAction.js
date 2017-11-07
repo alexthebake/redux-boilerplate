@@ -1,16 +1,16 @@
-export default function handleAjaxAction({ actionType, dataUpdater } = {}) {
+export default function handleAjaxAction({ ajaxActionType, dataUpdater } = {}) {
   return {
-    [actionType.LOADING]: state => ({
+    [ajaxActionType.LOADING]: state => ({
       ...state,
       loading: true,
     }),
-    [actionType.SUCCESS]: (state, action) => ({
+    [ajaxActionType.SUCCESS]: (state, action) => ({
       ...state,
       loaded: true,
       loading: false,
       data: dataUpdater(state.data, action.payload),
     }),
-    [actionType.FAILURE]: (state, action) => ({
+    [ajaxActionType.FAILURE]: (state, action) => ({
       ...state,
       loading: false,
       error: action.payload,
