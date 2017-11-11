@@ -1,6 +1,6 @@
 {
   "name": "@thebasement/redux-boilerplate",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "A bunch of stuff you're gonna implement anyway.",
   "scripts": {
     "test": "mocha tests/__helpers/init.js tests/**/*-test.js",

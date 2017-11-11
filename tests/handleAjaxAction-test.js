@@ -1,13 +1,8 @@
 import handleAjaxAction from '../src/handleAjaxAction';
 import { ajaxActionType } from '../src/actionTypes';
 import { unionById } from '../src/dataUpdaters';
-
-const INITIAL_STATE = {
-  data: {},
-  error: null,
-  loaded: false,
-  loading: false
-};
+import { AJAX_INITIAL_STATE } from '../src/constants';
+;
 const ACTION_TYPE = ajaxActionType('TEST');
 
 describe('handleAjaxAction', () => {
@@ -28,7 +23,7 @@ describe('handleAjaxAction', () => {
 
   describe('loading reducer', () => {
     it('sets error to null and loading to true', () => {
-      const state = reducers[ACTION_TYPE.LOADING](INITIAL_STATE);
+      const state = reducers[ACTION_TYPE.LOADING](AJAX_INITIAL_STATE);
       expect(state.error).to.be.null;
       expect(state.loading).to.be.true;
     });
@@ -43,8 +38,8 @@ describe('handleAjaxAction', () => {
         dataUpdater: updater,
       });
       const action = { payload: { id: 1 , name: 'Bob' } };
-      const state = reducers[ACTION_TYPE.SUCCESS](INITIAL_STATE, action);
-      expect(updater).to.have.been.calledWith(INITIAL_STATE.data, action.payload);
+      const state = reducers[ACTION_TYPE.SUCCESS](AJAX_INITIAL_STATE, action);
+      expect(updater).to.have.been.calledWith(AJAX_INITIAL_STATE.data, action.payload);
       expect(state.data).to.eql(newData);
       expect(state.error).to.be.null;
       expect(state.loaded).to.be.true;
@@ -56,7 +51,7 @@ describe('handleAjaxAction', () => {
     const action = { payload: { message: 'fail' } };
 
     it('sets error and updates loading statuses', () => {
-      const state = reducers[ACTION_TYPE.FAILURE](INITIAL_STATE, action);
+      const state = reducers[ACTION_TYPE.FAILURE](AJAX_INITIAL_STATE, action);
       expect(state.error).to.eq(action.payload);
       expect(state.loading).to.be.false;
     });

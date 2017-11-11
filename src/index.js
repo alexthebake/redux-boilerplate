@@ -7,6 +7,9 @@ import {
   unionById,
   addOrUpdateById,
 } from './dataUpdaters';
+import {
+  AJAX_INITIAL_STATE,
+} from './constants';
 
 export {
   createReducer,
@@ -18,4 +21,6 @@ export {
   removeById,
   unionById,
   addOrUpdateById,
+  // Constants
+  AJAX_INITIAL_STATE,
 };
