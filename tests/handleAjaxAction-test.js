@@ -53,6 +53,7 @@ describe('handleAjaxAction', () => {
     it('sets error and updates loading statuses', () => {
       const state = reducers[ACTION_TYPE.FAILURE](AJAX_INITIAL_STATE, action);
       expect(state.error).to.eq(action.payload);
+      expect(state.loaded).to.be.true;
       expect(state.loading).to.be.false;
     });
   });
