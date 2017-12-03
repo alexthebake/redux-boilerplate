@@ -1,8 +1,9 @@
 export default function handleAjaxAction({ ajaxActionType, dataUpdater } = {}) {
   return {
-    [ajaxActionType.LOADING]: state => ({
+    [ajaxActionType.LOADING]: (state, action) => ({
       ...state,
       loading: true,
+      context: action.context,
     }),
     [ajaxActionType.SUCCESS]: (state, action) => ({
       ...state,

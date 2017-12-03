@@ -4,10 +4,10 @@
  * @param  {Object}  options.ajaxCallback   Callback that returns ajax request
  * @return {Promise}                        Ajax request
  */
-export default function dispatchAjaxAction({ ajaxActionType, ajaxCallback } = {}) {
+export default function dispatchAjaxAction({ ajaxActionType, ajaxCallback, context = {} } = {}) {
   return (dispatch) => {
     // Dispatch LOADING action
-    dispatch({ type: ajaxActionType.LOADING });
+    dispatch({ type: ajaxActionType.LOADING, context });
     // Make ajax request
     return ajaxCallback(dispatch)
       .then((response) => {
