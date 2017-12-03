@@ -2,7 +2,7 @@ import handleAjaxAction from '../src/handleAjaxAction';
 import { ajaxActionType } from '../src/actionTypes';
 import { unionById } from '../src/dataUpdaters';
 import { AJAX_INITIAL_STATE } from '../src/constants';
-;
+
 const ACTION_TYPE = ajaxActionType('TEST');
 
 describe('handleAjaxAction', () => {
@@ -23,9 +23,15 @@ describe('handleAjaxAction', () => {
 
   describe('loading reducer', () => {
     it('sets error to null and loading to true', () => {
-      const state = reducers[ACTION_TYPE.LOADING](AJAX_INITIAL_STATE);
+      const state = reducers[ACTION_TYPE.LOADING](AJAX_INITIAL_STATE, {});
       expect(state.error).to.be.null;
       expect(state.loading).to.be.true;
+    });
+
+    it('sets given context', () => {
+      const context = { test: 'data' };
+      const state = reducers[ACTION_TYPE.LOADING](AJAX_INITIAL_STATE, { context });
+      expect(state.context).to.eql(context);
     });
   });
 

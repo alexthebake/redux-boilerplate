@@ -9,7 +9,7 @@ const mockStore = configureStore(middlewares);
 
 describe('dispatchAjaxAction', () => {
   const type = ajaxActionType('TYPE');
-  const loadingPayload = { test: 'payload' };
+  const context = { test: 'payload' };
 
   let action;
   let promise;
@@ -20,9 +20,9 @@ describe('dispatchAjaxAction', () => {
 
   it('dispatches pending action', () => {
     const ajaxCallback = sinon.stub().resolves({ ok: true });
-    const action = dispatchAjaxAction({ ajaxActionType: type, ajaxCallback });
+    const action = dispatchAjaxAction({ ajaxActionType: type, ajaxCallback, context });
     store.dispatch(action);
-    expect(store.getActions()).to.deep.include({ type: type.LOADING });
+    expect(store.getActions()).to.deep.include({ type: type.LOADING, context });
   });
 
   describe('ajax call resolves', () => {
