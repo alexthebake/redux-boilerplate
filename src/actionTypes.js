@@ -1,3 +1,7 @@
+export function actionName(...blocks) {
+  return _.map(blocks, block => `[${block}]`).join('');
+}
+
 export function ajaxActionType(actionType) {
   return {
     LOADING: `${actionType}[LOADING]`,

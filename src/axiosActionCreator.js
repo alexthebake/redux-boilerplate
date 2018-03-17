@@ -1,18 +1,11 @@
 import axios from 'axios';
 import requestKey from './requestKey';
 import promiseActionCreator from './promiseActionCreator';
+import { mergeConfigs } from './utils';
 
 export function setupAxiosActionCreator(config) {
   return args => {
-    let finalArgs = { ...args };
-    if (_.has(args, 'config')) {
-      finalArgs = {
-        ...finalArgs,
-        config: { ...args.config, ...config }
-      };
-    } else {
-      finalArgs.config = config;
-    }
+    const finalArgs = mergeConfigs(args, config);
     return axiosActionCreator(finalArgs);
   }
 }

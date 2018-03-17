@@ -4,11 +4,14 @@ import dispatchAjaxAction from './dispatchAjaxAction';
 import handleAjaxAction from './handleAjaxAction';
 import promiseActionCreator from './promiseActionCreator';
 import axiosActionCreator, {
-  setupAxiosActionCreator
+  setupAxiosActionCreator,
 } from './axiosActionCreator';
 import axiosActionHandlers from './axiosActionHandlers';
 import requestKey from './requestKey';
 import BasicStore from './basicStore';
+import AxiosStore, {
+  setupAxiosStore,
+} from './axiosStore';
 import {
   removeById,
   unionById,
@@ -38,4 +41,6 @@ export {
   // Misc
   requestKey,
   BasicStore,
+  AxiosStore,
+  setupAxiosStore,
 };
