@@ -12,8 +12,10 @@
   "author": "Alex Bake <alexbake7@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "axios": "^0.18.0",
     "chai": "^4.1.2",
     "chai-as-promised": "^7.1.1",
+    "change-case": "^3.0.2",
     "lodash": "^4.17.4",
     "mocha": "^4.0.1",
     "redux": "^3.7.2",

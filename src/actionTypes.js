@@ -5,3 +5,11 @@ export function ajaxActionType(actionType) {
     FAILURE: `${actionType}[FAILURE]`,
   };
 }
+
+export function promiseActionType(type) {
+  return {
+    LOADING: `[${type}][LOADING]`,
+    SUCCESS: `[${type}][SUCCESS]`,
+    FAILURE: `[${type}][FAILURE]`,
+  };
+}
