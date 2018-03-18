@@ -3,6 +3,26 @@ The PromiseStore allows you to define promise based actions, as well as thunk
 and basic actions.
 
 ## Examples
+### Basic Promise
+```javascript
+const randomPromise = Promise.resolve('data');
+
+const randomPromiseStore = new PromiseStore({
+  name: 'randomPromiseStore',
+  initialState: { data: null },
+  actions: {
+    call: {
+      promiseCallback: randomPromise,
+      successReducer: (state, action) => ({
+        ...state,
+        data: action.payload,
+      }),
+    },
+  },
+});
+```
+
+### Async Request
 ```javascript
 const resourceStore = new PromiseStore({
   name: 'resource',

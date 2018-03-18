@@ -68,10 +68,9 @@ const counterStore = new BasicStore({
   initialState: { counter: 0 },
   actions: {
     increment: {
-      payload: (i = 1) => i,
-      reducer: (state, action) => ({
+      reducer: (state) => ({
         ...state,
-        counter: state.counter + action.payload,
+        counter: state.counter + 1,
       }),
     },
   },

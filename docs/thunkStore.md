@@ -3,6 +3,37 @@ The ThunkStore allows you to define redux-thunk based actions, as well as basic
 actions.
 
 ## Examples
+### Basic Thunk
+```javascript
+const counter = new ThunkStore({
+  name: 'counter',
+  initialState: { counter: 1 },
+  actions: {
+    // First we define basic actions to be used in our thunk
+    increment: {
+      reducer: (state) => ({
+        ...state,
+        counter: state.counter + 1,
+      }),
+    },
+    decrement: {
+      reducer: (state) => ({
+        ...state,
+        counter: state.counter - 1,
+      }),
+    },
+    plusMinus: {
+      thunk: () => (actions) => (dispatch) => {
+        // Here we have access to all actions defined for this store by name
+        dispatch(actions.increment());
+        dispatch(actions.decrement());
+      }
+    }
+  },
+});
+```
+
+### Async Request
 ```javascript
 const resourceStore = new ThunkStore({
   name: 'resource',
