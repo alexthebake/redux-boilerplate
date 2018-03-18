@@ -13,6 +13,7 @@ import ThunkStore from './thunkStore';
 import PromiseStore from './promiseStore';
 import AxiosStore from './axiosStore';
 import ResourceStore from './resourceStore';
+import StoreIndex from './storeIndex';
 import {
   removeById,
   unionById,
@@ -46,4 +47,5 @@ export {
   PromiseStore,
   AxiosStore,
   ResourceStore,
+  StoreIndex,
 };
