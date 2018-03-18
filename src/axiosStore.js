@@ -22,14 +22,6 @@ function updatedRequests(state, action) {
   };
 }
 
-export function setupAxiosStore(config) {
-  return class _AxiosStore extends AxiosStore {
-    constructor(args) {
-      super(mergeConfigs(args, config));
-    }
-  }
-}
-
 class AxiosStore extends PromiseStore {
   constructor({ name, actions = {}, config = {} }) {
     super({

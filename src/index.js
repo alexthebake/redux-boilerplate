@@ -11,12 +11,8 @@ import requestKey from './requestKey';
 import BasicStore from './basicStore';
 import ThunkStore from './thunkStore';
 import PromiseStore from './promiseStore';
-import AxiosStore, {
-  setupAxiosStore,
-} from './axiosStore';
-import ResourceStore, {
-  setupResourceStore,
-} from './resourceStore';
+import AxiosStore from './axiosStore';
+import ResourceStore from './resourceStore';
 import {
   removeById,
   unionById,
@@ -49,7 +45,5 @@ export {
   ThunkStore,
   PromiseStore,
   AxiosStore,
-  setupAxiosStore,
   ResourceStore,
-  setupResourceStore,
 };

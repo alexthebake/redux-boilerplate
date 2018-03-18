@@ -32,14 +32,6 @@ function axiosToResourceResponse(axiosResponse) {
   return { data: axiosResponse.data };
 }
 
-export function setupResourceStore(config) {
-  return class _ResourceStore extends ResourceStore {
-    constructor(args) {
-      super(mergeConfigs(args, config));
-    }
-  }
-}
-
 export default class ResourceStore extends AxiosStore {
   constructor({
     name,

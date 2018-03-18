@@ -75,7 +75,8 @@ const resourceStore = new AxiosStore({
 ```
 
 ### Setting Global Axios Config
-I'm not sure if this great, or horrible...
+Sometimes you want to set defaults for all axios requests. Setting a default
+config on AxiosStore will also affect the ResourceStore.
 ```javascript
 import { AxiosStore } from '@thebasement/redux-boilerplate';
 
@@ -83,3 +84,4 @@ AxiosStore.setConfig({
   headers: { /** ... */ },
 });
 ```
+I'm not sure if this great, or horrible...
