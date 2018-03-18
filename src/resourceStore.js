@@ -41,7 +41,7 @@ export default class ResourceStore extends AxiosStore {
     actions = {},
     config = {}
   }) {
-    super({ name, config });
+    super({ name, config, actions });
     this.endpoint = endpoint;
 
     /**
