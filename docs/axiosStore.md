@@ -1,5 +1,5 @@
-# PromiseStore
-The PromiseStore allows you to define axios based actions, as well as promise,
+# AxiosStore
+The AxiosStore allows you to define axios based actions, as well as promise,
 thunk, and basic actions.
 
 ## Examples
