@@ -24,12 +24,13 @@ function getPreviousRequest(
   return requests[key];
 }
 
-function resourceResponse(data) {
-  return Promise.resolve({ data });
+function resourceResponse(status, data) {
+  return Promise.resolve({ status, data });
 }
 
 function axiosToResourceResponse(axiosResponse) {
-  return { data: axiosResponse.data };
+  const { status, data } = axiosResponse;
+  return { status, data };
 }
 
 export default class ResourceStore extends AxiosStore {
@@ -53,7 +54,7 @@ export default class ResourceStore extends AxiosStore {
         data: query,
       }),
       dataUpdater: (state, action) => unionById(state.data, action.payload.data),
-      success: (response) => resourceResponse(response.data),
+      success: axiosToResourceResponse
     });
     this.addThunkAction({
       name: 'index',
@@ -70,11 +71,11 @@ export default class ResourceStore extends AxiosStore {
             // It's possible that the data we successfully fetched before has been
             // updated. To avoid returning stale data, we grab the ids from the
             // previous request and get the latest resource objects.
-            let data = {};
-            _.forEach(previousRequest.response.data, resource => {
-              data[resource.id] = resource;
-            });
-            return resourceResponse(data);
+            const data = _.map(
+              previousRequest.response.data,
+              ({ id }) => resourceState.data[id],
+            );
+            return resourceResponse(200, data);
           default:
             return dispatch(actions.forceIndex(query));
         }
@@ -89,7 +90,7 @@ export default class ResourceStore extends AxiosStore {
       name: 'forceShow',
       request: (id) => ({ url: `${this.endpoint}${id}` }),
       dataUpdater: (state, action) => addOrUpdateById(state.data, action.payload.data),
-      success: (response) => resourceResponse(response.data),
+      success: axiosToResourceResponse,
     });
     this.addThunkAction({
       name: 'show',
@@ -100,7 +101,7 @@ export default class ResourceStore extends AxiosStore {
         // can avoid making another request and simply return it from the store.
         const resource = resourceState.data[id];
         if (!_.isUndefined(resource)) {
-          return resourceResponse(resource);
+          return resourceResponse(200, resource);
         }
 
         const previousRequest = getPreviousRequest(resourceState, {
@@ -127,7 +128,7 @@ export default class ResourceStore extends AxiosStore {
         method: 'POST',
       }),
       dataUpdater: (state, action) => addOrUpdateById(state.data, action.payload.data),
-      success: (response) => resourceResponse(response.data),
+      success: axiosToResourceResponse,
     });
 
     /**
@@ -142,7 +143,7 @@ export default class ResourceStore extends AxiosStore {
         method: 'PUT',
       }),
       dataUpdater: (state, action) => addOrUpdateById(state.data, action.payload.data),
-      success: (response) => resourceResponse(response.data),
+      success: axiosToResourceResponse,
     });
 
     /**
@@ -156,7 +157,7 @@ export default class ResourceStore extends AxiosStore {
         method: 'DELETE'
       }),
       dataUpdater: (state, action) => removeById(state.data, action.payload.data),
-      success: (response) => resourceResponse(response.data),
+      success: axiosToResourceResponse,
     });
   }
 }
