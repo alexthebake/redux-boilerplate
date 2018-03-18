@@ -12,7 +12,7 @@ const randomPromiseStore = new PromiseStore({
   initialState: { data: null },
   actions: {
     call: {
-      promiseCallback: randomPromise,
+      promiseCallback: () => randomPromise(),
       successReducer: (state, action) => ({
         ...state,
         data: action.payload,
