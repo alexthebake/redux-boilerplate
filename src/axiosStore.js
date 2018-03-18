@@ -5,8 +5,8 @@ import { AJAX_INITIAL_STATE } from './constants';
 import { mergeConfigs } from './utils';
 import { actionName } from './actionTypes';
 
-function defaultDataUpdater(state, action) {
-  return action.payload.data;
+function defaultDataUpdater(state) {
+  return state.data;
 }
 
 function updatedRequests(state, action) {
@@ -62,17 +62,17 @@ export default class AxiosStore extends PromiseStore {
           .then(success)
           .catch(failure)
       },
-      loadingContext: (promise, args) => ({
+      loadingContext: (promise, ...args) => ({
         key: requestKey(getRequestConfig(args, request)),
         status: 'loading',
         promise,
       }),
-      successContext: (response, args) => ({
+      successContext: (response, ...args) => ({
         key: requestKey(getRequestConfig(args, request)),
         status: 'success',
         response,
       }),
-      failureContext: (response, args) => ({
+      failureContext: (response, ...args) => ({
         key: requestKey(getRequestConfig(args, request)),
         status: 'failure',
         response,
