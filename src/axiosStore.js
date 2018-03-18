@@ -30,18 +30,22 @@ export function setupAxiosStore(config) {
   }
 }
 
-export default class AxiosStore extends PromiseStore {
+class AxiosStore extends PromiseStore {
   constructor({ name, actions = {}, config = {} }) {
     super({
       name,
       actions,
       initialState: AJAX_INITIAL_STATE,
     });
-    this.axiosConfig = config;
+    this.config = config;
     _.forEach(actions, (config, name) => {
       if (!config.request) return;
       this.addAxiosAction({ name, ...config });
     });
+  }
+
+  get axiosConfig() {
+    return { ...AxiosStore.config, ...this.config };
   }
 
   addAxiosAction({
@@ -99,3 +103,10 @@ export default class AxiosStore extends PromiseStore {
     })
   }
 }
+
+AxiosStore.config = {};
+AxiosStore.setConfig = (config) => {
+  AxiosStore.config = config
+};
+
+export default AxiosStore;
