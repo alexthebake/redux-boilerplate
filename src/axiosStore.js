@@ -1,13 +1,25 @@
 import axios from 'axios';
-import ThunkStore from './thunkStore';
-import { promiseActionType } from './actionTypes';
-import { setupAxiosActionCreator } from './axiosActionCreator';
+import requestKey from './requestKey';
+import PromiseStore from './promiseStore';
 import { AJAX_INITIAL_STATE } from './constants';
 import { mergeConfigs } from './utils';
 import { actionName } from './actionTypes';
 
 function defaultDataUpdater(state, action) {
   return action.payload.data;
+}
+
+function updatedRequests(state, action) {
+  const { context } = action;
+  const { key } = context;
+  const cachedRequest = state.requests[key];
+  if (_.isUndefined(cachedRequest)) {
+    return { ...state.requests, [key]: context };
+  }
+  return {
+    ...state.requests,
+    [key]: { ...cachedRequest, ...context }
+  };
 }
 
 export function setupAxiosStore(config) {
@@ -18,13 +30,12 @@ export function setupAxiosStore(config) {
   }
 }
 
-export default class AxiosStore extends ThunkStore {
+export default class AxiosStore extends PromiseStore {
   constructor({ name, actions = {}, config = {} }) {
     super({
       name,
       initialState: AJAX_INITIAL_STATE,
     });
-    // this.axiosActionCreator = setupAxiosActionCreator(config);
     this.axiosConfig = config;
     _.forEach(actions, (config, name) => {
       if (!config.request) return;
@@ -32,53 +43,58 @@ export default class AxiosStore extends ThunkStore {
     });
   }
 
-  addAxiosAction({ name, request, dataUpdater = defaultDataUpdater }) {
-    const actionType = promiseActionType(name);
-    this.addAction({
-      name: actionType.LOADING,
-      payload: (id) => id,
-      reducer: (state, action) => ({
-        ...state,
-        loading: true
+  addAxiosAction({
+    name,
+    request,
+    dataUpdater = defaultDataUpdater,
+    success = (args) => args,
+    failure = (args) => args,
+  }) {
+    const getRequestConfig = (args, request) => {
+      return _.isFunction(request) ? request(args) : request;
+    }
+    this.addPromiseAction({
+      name,
+      promiseCallback: (args) => {
+        const requestConfig = getRequestConfig(args, request);
+        return axios.request({ ...requestConfig, ...this.axiosConfig })
+          .then(success)
+          .catch(failure)
+      },
+      loadingContext: (promise, args) => ({
+        key: requestKey(getRequestConfig(args, request)),
+        status: 'loading',
+        promise,
       }),
-    });
-    this.addAction({
-      name: actionType.SUCCESS,
-      payload: (data) => data,
-      reducer: (state, action) => ({
+      successContext: (response, args) => ({
+        key: requestKey(getRequestConfig(args, request)),
+        status: 'success',
+        response,
+      }),
+      failureContext: (response, args) => ({
+        key: requestKey(getRequestConfig(args, request)),
+        status: 'failure',
+        response,
+      }),
+      loadingReducer: (state, action) => ({
+        ...state,
+        loading: true,
+        requests: updatedRequests(state, action),
+      }),
+      successReducer: (state, action) => ({
         ...state,
         loaded: true,
         loading: false,
         data: dataUpdater(state, action),
+        requests: updatedRequests(state, action),
       }),
-    });
-    this.addAction({
-      name: actionType.FAILURE,
-      payload: (error) => error,
-      reducer: (state, action) => ({
+      failureReducer: (state, action) => ({
         ...state,
         loaded: true,
         loading: false,
-        error: action.payload
+        error: action.payload,
+        requests: updatedRequests(state, action),
       }),
-    });
-    this.addThunkAction({
-      name,
-      thunk: (args) => (actions) => (dispatch) => {
-        const requestConfig = _.isFunction(request)
-          ? request(args)
-          : request;
-        dispatch(actions[actionType.LOADING](args));
-        return axios.request({ ...requestConfig, ...this.axiosConfig })
-          .then(response => {
-            dispatch(actions[actionType.SUCCESS](response));
-            return response;
-          })
-          .catch(error => {
-            dispatch(actions[actionType.FAILURE](error));
-            return error;
-          });
-      }
-    });
+    })
   }
 }

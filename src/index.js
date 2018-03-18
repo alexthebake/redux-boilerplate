@@ -9,9 +9,14 @@ import axiosActionCreator, {
 import axiosActionHandlers from './axiosActionHandlers';
 import requestKey from './requestKey';
 import BasicStore from './basicStore';
+import ThunkStore from './thunkStore';
+import PromiseStore from './promiseStore';
 import AxiosStore, {
   setupAxiosStore,
 } from './axiosStore';
+import ResourceStore, {
+  setupResourceStore,
+} from './resourceStore';
 import {
   removeById,
   unionById,
@@ -41,6 +46,10 @@ export {
   // Misc
   requestKey,
   BasicStore,
+  ThunkStore,
+  PromiseStore,
   AxiosStore,
   setupAxiosStore,
+  ResourceStore,
+  setupResourceStore,
 };

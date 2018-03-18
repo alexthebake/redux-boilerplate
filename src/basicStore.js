@@ -38,14 +38,18 @@ export default class BasicStore {
     return createReducer(this.initialState, this.actionHandlers);
   }
 
-  addAction({ name, payload, reducer }) {
+  addAction({
+    name,
+    payload,
+    reducer,
+  }) {
     const actionType = actionName(this.name, name);
     this.actions[name] = {
-      action: (args) => {
+      action: (...args) => {
         return {
           type: actionType,
           payload: _.isFunction(payload)
-            ? payload(args)
+            ? payload(...args)
             : payload,
         }
       },
