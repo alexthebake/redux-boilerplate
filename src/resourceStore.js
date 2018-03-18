@@ -1,3 +1,4 @@
+import axios from 'axios';
 import requestKey from './requestKey';
 import AxiosStore from './axiosStore';
 import { mergeConfigs } from './utils';
@@ -158,6 +159,23 @@ export default class ResourceStore extends AxiosStore {
       }),
       dataUpdater: (state, action) => removeById(state.data, action.payload.data),
       success: axiosToResourceResponse,
+    });
+
+    /**
+     * OPTIONS
+     */
+
+    this.addPromiseAction({
+      name: 'options',
+      promiseCallback: () => axios.request({
+        url: this.endpoint,
+        method: 'OPTIONS',
+        ...this.axiosConfig,
+      }),
+      successReducer: (state, action) => ({
+        ...state,
+        options: action.payload.data,
+      }),
     });
   }
 }
