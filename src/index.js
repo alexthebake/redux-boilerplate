@@ -1,7 +1,4 @@
-import { ajaxActionType, promiseActionType } from './actionTypes';
 import createReducer from './createReducer';
-import dispatchAjaxAction from './dispatchAjaxAction';
-import handleAjaxAction from './handleAjaxAction';
 import promiseActionCreator from './promiseActionCreator';
 import axiosActionCreator, {
   setupAxiosActionCreator,
@@ -24,17 +21,12 @@ import {
 } from './constants';
 
 export {
-  createReducer,
-  dispatchAjaxAction,
-  handleAjaxAction,
+  // Action creators
   promiseActionCreator,
   axiosActionCreator,
-  axiosActionHandlers,
   setupAxiosActionCreator,
-  // Action types
-  ajaxActionType,
-  promiseActionType,
   // Data updaters
+  axiosActionHandlers,
   removeById,
   unionById,
   addOrUpdateById,
@@ -42,6 +34,8 @@ export {
   AJAX_INITIAL_STATE,
   // Misc
   requestKey,
+  createReducer,
+  // Stores
   BasicStore,
   ThunkStore,
   PromiseStore,
