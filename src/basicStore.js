@@ -8,7 +8,7 @@ export default class BasicStore {
     this.initialState = initialState;
     this.actions = {};
     _.forEach(actions, (config, name) => {
-      if (!(config.payload && config.reducer)) return;
+      if (!config.reducer) return;
       this.addAction({ name, ...config });
     });
   }

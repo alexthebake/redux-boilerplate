@@ -47,25 +47,25 @@ export default class PromiseStore extends ThunkStore {
     });
     this.addThunkAction({
       name,
-      thunk: (args) => (actions) => (dispatch) => {
-        const promise = promiseCallback(args)
+      thunk: (...args) => (actions) => (dispatch) => {
+        const promise = promiseCallback(...args)
           .then(result => {
             dispatch(actions[actionType.SUCCESS](
               result,
-              successContext(result, args),
+              successContext(result, ...args),
             ));
             return result;
           })
           .catch(error => {
             dispatch(actions[actionType.LOADING](
               error,
-              failureContext(error, args),
+              failureContext(error, ...args),
             ));
             return error;
           });
         dispatch(actions[actionType.LOADING](
           args,
-          loadingContext(promise, args),
+          loadingContext(promise, ...args),
         ));
         return promise;
       },

@@ -95,7 +95,7 @@ export default class ResourceStore extends AxiosStore {
 
     this.addAxiosAction({
       name: 'forceShow',
-      request: (id) => ({ url: `${this.endpoint}/${id}` }),
+      request: (id) => ({ url: `${this.endpoint}${id}` }),
       dataUpdater: (state, action) => addOrUpdateById(state.data, action.payload.data),
       success: (response) => resourceResponse(response.data),
     });
@@ -112,7 +112,7 @@ export default class ResourceStore extends AxiosStore {
         }
 
         const previousRequest = getPreviousRequest(resourceState, {
-          url: `${this.endpoint}/${id}`
+          url: `${this.endpoint}${id}`
         });
         switch (_.get(previousRequest, "status")) {
           case "loading":
@@ -145,7 +145,7 @@ export default class ResourceStore extends AxiosStore {
     this.addAxiosAction({
       name: 'update',
       request: (id, updates = {}) => ({
-        url: `${this.endpoint}/${id}`,
+        url: `${this.endpoint}${id}`,
         data: updates,
         method: 'PUT',
       }),
@@ -160,7 +160,7 @@ export default class ResourceStore extends AxiosStore {
     this.addAxiosAction({
       name: 'delete',
       request: (id) => ({
-        url: `${this.endpoint}/${id}`,
+        url: `${this.endpoint}${id}`,
         method: 'DELETE'
       }),
       dataUpdater: (state, action) => removeById(state.data, action.payload.data),

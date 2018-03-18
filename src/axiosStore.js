@@ -34,6 +34,7 @@ export default class AxiosStore extends PromiseStore {
   constructor({ name, actions = {}, config = {} }) {
     super({
       name,
+      actions,
       initialState: AJAX_INITIAL_STATE,
     });
     this.axiosConfig = config;
@@ -51,11 +52,11 @@ export default class AxiosStore extends PromiseStore {
     failure = (args) => args,
   }) {
     const getRequestConfig = (args, request) => {
-      return _.isFunction(request) ? request(args) : request;
+      return _.isFunction(request) ? request(...args) : request;
     }
     this.addPromiseAction({
       name,
-      promiseCallback: (args) => {
+      promiseCallback: (...args) => {
         const requestConfig = getRequestConfig(args, request);
         return axios.request({ ...requestConfig, ...this.axiosConfig })
           .then(success)

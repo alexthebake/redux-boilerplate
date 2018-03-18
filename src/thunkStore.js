@@ -11,7 +11,7 @@ export default class ThunkStore extends BasicStore {
 
   addThunkAction({ name, thunk }) {
     this.actions[name] = {
-      action: (args) => thunk(args)(this.actionCreators),
+      action: (...args) => thunk(...args)(this.actionCreators),
     };
   }
 }
