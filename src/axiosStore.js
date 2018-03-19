@@ -5,10 +5,6 @@ import { AJAX_INITIAL_STATE } from './constants';
 import { mergeConfigs } from './utils';
 import { actionName } from './actionTypes';
 
-function defaultDataUpdater(state) {
-  return state.data;
-}
-
 function updatedRequests(state, action) {
   const { context } = action;
   const { key } = context;
@@ -22,14 +18,53 @@ function updatedRequests(state, action) {
   };
 }
 
+function defaultDataUpdater(state) {
+  return state.data;
+}
+
+export function defaultReducer(status, dataUpdater) {
+  switch (status) {
+    case 'loading':
+      return (state, action) => ({
+        ...state,
+        loading: true,
+        requests: updatedRequests(state, action),
+      });
+    case 'success':
+      return (state, action) => ({
+        ...state,
+        loaded: true,
+        loading: false,
+        data: dataUpdater(state, action),
+        requests: updatedRequests(state, action),
+      });
+    case 'failure':
+      return (state, action) => ({
+        ...state,
+        loaded: true,
+        loading: false,
+        error: action.payload,
+        requests: updatedRequests(state, action),
+      });
+    default:
+      return (state) => ({ ...state });
+  }
+}
+
 class AxiosStore extends PromiseStore {
-  constructor({ name, actions = {}, config = {} }) {
+  constructor({
+    name,
+    actions = {},
+    config = {},
+    primaryKey = 'id',
+  }) {
     super({
       name,
       actions,
       initialState: AJAX_INITIAL_STATE,
     });
     this.config = config;
+    this.primaryKey = primaryKey;
     _.forEach(actions, (config, name) => {
       if (!config.request) return;
       this.addAxiosAction({ name, ...config });
@@ -44,6 +79,9 @@ class AxiosStore extends PromiseStore {
     name,
     request,
     dataUpdater = defaultDataUpdater,
+    loadingReducer,
+    successReducer,
+    failureReducer,
     success = (args) => args,
     failure = (args) => args,
   }) {
@@ -73,25 +111,17 @@ class AxiosStore extends PromiseStore {
         status: 'failure',
         response,
       }),
-      loadingReducer: (state, action) => ({
-        ...state,
-        loading: true,
-        requests: updatedRequests(state, action),
-      }),
-      successReducer: (state, action) => ({
-        ...state,
-        loaded: true,
-        loading: false,
-        data: dataUpdater(state, action),
-        requests: updatedRequests(state, action),
-      }),
-      failureReducer: (state, action) => ({
-        ...state,
-        loaded: true,
-        loading: false,
-        error: action.payload,
-        requests: updatedRequests(state, action),
-      }),
+      loadingReducer: _.isFunction(loadingReducer)
+        ? loadingReducer
+        : defaultReducer('loading'),
+      successReducer: _.isFunction(successReducer)
+        ? successReducer
+        : defaultReducer('success', (state, action) =>
+            dataUpdater(state, action, this.primaryKey)
+          ),
+      failureReducer: _.isFunction(failureReducer)
+        ? failureReducer
+        : defaultReducer('failure'),
     })
   }
 }
