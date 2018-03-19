@@ -19,6 +19,7 @@ export default class PromiseStore extends ThunkStore {
     loadingReducer = (state) => state,
     successReducer = (state) => state,
     failureReducer = (state) => state,
+    confirmSuccess = () => true,
   }) {
     const actionType = promiseActionType(name);
     const extractPayload = (reducer) => (state, action) => {
@@ -46,11 +47,14 @@ export default class PromiseStore extends ThunkStore {
       thunk: (...args) => (actions) => (dispatch) => {
         const promise = promiseCallback(...args)
           .then(result => {
-            dispatch(actions[actionType.SUCCESS]({
-              data: result,
-              context: successContext(result, ...args),
-            }));
-            return result;
+            if (confirmSuccess(result)) {
+              dispatch(actions[actionType.SUCCESS]({
+                data: result,
+                context: successContext(result, ...args),
+              }));
+              return result;
+            }
+            return Promise.reject(result);
           })
           .catch(error => {
             dispatch(actions[actionType.LOADING]({

@@ -96,6 +96,7 @@ class AxiosStore extends PromiseStore {
           .then(success)
           .catch(failure)
       },
+      confirmSuccess: (response) => (response.statusText === "OK"),
       loadingContext: (promise, ...args) => ({
         key: requestKey(getRequestConfig(args, request)),
         status: 'loading',

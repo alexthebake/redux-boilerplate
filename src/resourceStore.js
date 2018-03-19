@@ -20,13 +20,13 @@ function getPreviousRequest(
   return requests[key];
 }
 
-function resourceResponse(status, data) {
-  return Promise.resolve({ status, data });
+function resourceResponse(status, statusText, data) {
+  return Promise.resolve({ status, statusText, data });
 }
 
 function axiosToResourceResponse(axiosResponse) {
-  const { status, data } = axiosResponse;
-  return { status, data };
+  const { status, statusText, data } = axiosResponse;
+  return resourceResponse(status, statusText, data);
 }
 
 export default class ResourceStore extends AxiosStore {
@@ -184,6 +184,12 @@ export default class ResourceStore extends AxiosStore {
     this.nestedId = id;
   }
 
+  getRootStore() {
+    return !this.parent
+      ? this
+      : this.parent.getRootStore();
+  }
+
   getEndpoint() {
     if (!this.parent) return this.endpoint;
     return _.isFunction(this.endpoint)
@@ -193,10 +199,19 @@ export default class ResourceStore extends AxiosStore {
 
   getResourceState(state) {
     const resourcePath = this.nestedId
-      ? `${this.name}.${this.nestedId}`
+      ? `${this.getRootStore().name}.${this.getNestedStatePath()}`
       : this.name;
     const resourceState = _.get(state, resourcePath);
     return resourceState;
+  }
+
+  getNestedStatePath(path = []) {
+    // TODO: Figure out a more robust way to do this.
+    if (!this.parent) return path.join('.');
+    const thisName = _.last(this.name.split('.'));
+    return this.parent.getNestedStatePath([
+      thisName, this.nestedId, ...path
+    ]);
   }
 
   handleStateUpdate(dataUpdater) {
@@ -230,27 +245,6 @@ export default class ResourceStore extends AxiosStore {
       Object
     );
     return newState;
-  }
-
-  getNestedStatePath(path = []) {
-    // TODO: Figure out a more robust way to do this.
-    if (!this.parent) return path.join('.');
-    const thisName = _.last(this.name.split('.'));
-    return this.parent.getNestedStatePath([
-      thisName, this.nestedId, ...path
-    ]);
-  }
-
-  getNestedResourcePath(path = []) {
-    if (!this.parent) return path.join('.');
-    const thisName = _.last(this.name.split('.'));
-    return this.parent.getNestedStatePath([thisName, ...path]);
-  }
-
-  getRootStore() {
-    return !this.parent
-      ? this
-      : this.parent.getRootStore();
   }
 
   addNestedActionHandlers(nestedStore) {
