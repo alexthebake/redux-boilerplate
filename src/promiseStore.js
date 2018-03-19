@@ -21,7 +21,6 @@ export default class PromiseStore extends ThunkStore {
     failureReducer = (state) => state,
   }) {
     const actionType = promiseActionType(name);
-    const payload = (data, context) => ({ data, context });
     const extractPayload = (reducer) => (state, action) => {
       const newAction = {
         ...action,
@@ -32,17 +31,14 @@ export default class PromiseStore extends ThunkStore {
     };
     this.addAction({
       name: actionType.LOADING,
-      payload,
       reducer: extractPayload(loadingReducer),
     });
     this.addAction({
       name: actionType.SUCCESS,
-      payload,
       reducer: extractPayload(successReducer),
     });
     this.addAction({
       name: actionType.FAILURE,
-      payload,
       reducer: extractPayload(failureReducer),
     });
     this.addThunkAction({
@@ -50,23 +46,23 @@ export default class PromiseStore extends ThunkStore {
       thunk: (...args) => (actions) => (dispatch) => {
         const promise = promiseCallback(...args)
           .then(result => {
-            dispatch(actions[actionType.SUCCESS](
-              result,
-              successContext(result, ...args),
-            ));
+            dispatch(actions[actionType.SUCCESS]({
+              data: result,
+              context: successContext(result, ...args),
+            }));
             return result;
           })
           .catch(error => {
-            dispatch(actions[actionType.LOADING](
-              error,
-              failureContext(error, ...args),
-            ));
+            dispatch(actions[actionType.LOADING]({
+              data: error,
+              context: failureContext(error, ...args),
+            }));
             return error;
           });
-        dispatch(actions[actionType.LOADING](
-          args,
-          loadingContext(promise, ...args),
-        ));
+        dispatch(actions[actionType.LOADING]({
+          data: args,
+          context: loadingContext(promise, ...args),
+        }));
         return promise;
       },
     });
