@@ -101,16 +101,19 @@ class AxiosStore extends PromiseStore {
         key: requestKey(getRequestConfig(args, request)),
         status: 'loading',
         promise,
+        args,
       }),
       successContext: (response, ...args) => ({
         key: requestKey(getRequestConfig(args, request)),
         status: 'success',
         response,
+        args,
       }),
       failureContext: (response, ...args) => ({
         key: requestKey(getRequestConfig(args, request)),
         status: 'failure',
         response,
+        args,
       }),
       loadingReducer: _.isFunction(loadingReducer)
         ? loadingReducer
