@@ -62,7 +62,7 @@ export default class ResourceStore extends AxiosStore {
         data: query
       }),
       success: axiosToResourceResponse,
-      ...this.handleStateUpdate(unionById),
+      ...this.resourceReducers(unionById),
     });
     this.addThunkAction({
       name: 'index',
@@ -98,7 +98,7 @@ export default class ResourceStore extends AxiosStore {
         url: `${this.getEndpoint(nestedIds)}${id}`
       }),
       success: axiosToResourceResponse,
-      ...this.handleStateUpdate(addOrUpdateById),
+      ...this.resourceReducers(addOrUpdateById),
     });
     this.addThunkAction({
       name: 'show',
@@ -134,7 +134,7 @@ export default class ResourceStore extends AxiosStore {
         method: 'POST',
       }),
       success: axiosToResourceResponse,
-      ...this.handleStateUpdate(addOrUpdateById),
+      ...this.resourceReducers(addOrUpdateById),
     });
   }
 
@@ -147,7 +147,7 @@ export default class ResourceStore extends AxiosStore {
         method: 'PUT',
       }),
       success: axiosToResourceResponse,
-      ...this.handleStateUpdate(addOrUpdateById),
+      ...this.resourceReducers(addOrUpdateById),
     });
   }
 
@@ -159,7 +159,7 @@ export default class ResourceStore extends AxiosStore {
         method: 'DELETE'
       }),
       success: axiosToResourceResponse,
-      ...this.handleStateUpdate(removeById),
+      ...this.resourceReducers(removeById),
     });
   }
 
@@ -212,11 +212,11 @@ export default class ResourceStore extends AxiosStore {
     );
   }
 
-  handleStateUpdate(dataUpdater) {
+  resourceReducers(dataUpdater) {
     const pkDataUpdater = (state, action) =>
       dataUpdater(state.data, action.payload.data, this.primaryKey);
     if (!this.parent) {
-      // For top level resources, the dataUpdater will suffice.
+      // For top level resources, just the dataUpdater will suffice.
       return { dataUpdater: pkDataUpdater };
     }
     return {
