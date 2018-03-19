@@ -57,16 +57,16 @@ export default class ResourceStore extends AxiosStore {
   defineIndexActions() {
     this.addAxiosAction({
       name: 'forceIndex',
-      request: (query = {}, _empty, ...nestedIds) => ({
+      request: (query = {}, ...nestedIds) => ({
         url: this.getEndpoint(nestedIds),
-        data: query,
+        data: query
       }),
       success: axiosToResourceResponse,
       ...this.handleStateUpdate(unionById),
     });
     this.addThunkAction({
       name: 'index',
-      thunk: (query = {}, _empty, ...nestedIds) => (actions) => (dispatch, getState) => {
+      thunk: (query = {}, ...nestedIds) => (actions) => (dispatch, getState) => {
         const resourceState = this.getResourceState(getState(), nestedIds);
         const previousRequest = getPreviousRequest(resourceState, {
           url: this.getEndpoint(nestedIds),
@@ -94,7 +94,7 @@ export default class ResourceStore extends AxiosStore {
   defineShowActions() {
     this.addAxiosAction({
       name: 'forceShow',
-      request: (id, _empty, ...nestedIds) => ({
+      request: (id, ...nestedIds) => ({
         url: `${this.getEndpoint(nestedIds)}${id}`
       }),
       success: axiosToResourceResponse,
@@ -102,7 +102,7 @@ export default class ResourceStore extends AxiosStore {
     });
     this.addThunkAction({
       name: 'show',
-      thunk: (id, _empty, ...nestedIds) => (actions) => (dispatch, getState) => {
+      thunk: (id, ...nestedIds) => (actions) => (dispatch, getState) => {
         const resourceState = this.getResourceState(getState(), nestedIds);
         // It's possible that the resource may already be in the store, even if a
         // show request for `id` hasn't yet been made. If it's already present, we
@@ -128,9 +128,9 @@ export default class ResourceStore extends AxiosStore {
   defineCreateActions() {
     this.addAxiosAction({
       name: 'create',
-      request: (params = {}, _empty, ...nestedIds) => ({
+      request: (params = {}, ...nestedIds) => ({
         url: this.getEndpoint(nestedIds),
-        data: params,
+        data: _.isObject(params) ? params : {},
         method: 'POST',
       }),
       success: axiosToResourceResponse,
@@ -141,9 +141,9 @@ export default class ResourceStore extends AxiosStore {
   defineUpdateActions() {
     this.addAxiosAction({
       name: 'update',
-      request: (id, updates = {}, nestedId) => ({
+      request: (id, updates, ...nestedIds) => ({
         url: `${this.getEndpoint(nestedIds)}${id}`,
-        data: updates,
+        data: _.isObject(updates) ? updates : {},
         method: 'PUT',
       }),
       success: axiosToResourceResponse,
@@ -154,7 +154,7 @@ export default class ResourceStore extends AxiosStore {
   defineDeleteActions() {
     this.addAxiosAction({
       name: 'delete',
-      request: (id, _empty, ...nestedIds) => ({
+      request: (id, ...nestedIds) => ({
         url: `${this.getEndpoint(nestedIds)}${id}`,
         method: 'DELETE'
       }),
@@ -167,7 +167,7 @@ export default class ResourceStore extends AxiosStore {
     // TODO: Try axiosAction with successReducer
     this.addPromiseAction({
       name: 'options',
-      promiseCallback: (_empty1, _empty2, ...nestedIds) => axios.request({
+      promiseCallback: (_empty, ...nestedIds) => axios.request({
         url: this.getEndpoint(nestedIds),
         method: 'OPTIONS',
         ...this.axiosConfig,
@@ -269,11 +269,14 @@ export default class ResourceStore extends AxiosStore {
     this.addNestedActionHandlers(nestedStore)
     this.addThunkAction({
       name,
-      thunk: (id, _empty, ...nestedIds) => (actions) => (dispatch) => {
+      thunk: (nestedId, ...nestedIds) => (actions) => (dispatch) => {
         const actionCreators = nestedStore.bindActionCreators(dispatch);
         let newActions = {};
         _.forEach(actionCreators, (action, name) => {
-          newActions[name] = _.partialRight(action, _, _, id, ...nestedIds);
+          newActions[name] = (...args) => (args.length === 0
+            ? action(undefined, nestedId, ...nestedIds)
+            : action(...args, nestedId, ...nestedIds)
+          );
         });
         return newActions;
       }
