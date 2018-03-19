@@ -62,16 +62,14 @@ store.myStore
 ```
 
 ## Examples
+### Simple Counter
 ```javascript
 const counterStore = new BasicStore({
   name: 'counter',
-  initialState: { counter: 0 },
+  initialState: 0,
   actions: {
     increment: {
-      reducer: (state) => ({
-        ...state,
-        counter: state.counter + 1,
-      }),
+      reducer: state => state + 1,
     },
   },
 });
@@ -81,4 +79,52 @@ actions.counterStore.increment()
 
 // Accessing Counter
 store.counterStore.counter
+```
+
+### Counter with Args
+```javascript
+const counterStore = new BasicStore({
+  name: 'counter',
+  initialState: 0,
+  actions: {
+    increment: {
+      payload: (i = 1) => i,
+      reducer: (state, action) => state + action.payload,
+    },
+  },
+});
+```
+
+### Classic TODO
+```javascript
+const todoStore = new BasicStore({
+  name: 'todo',
+  initialState: {
+    nextId: 0,
+    todos: {}
+  },
+  actions: {
+    addTodo: {
+      payload: (message) => message,
+      reducer: (state, action) => ({
+        ...state,
+        nextId: state.nextId + 1,
+        todos: {
+          ...state.todos,
+          [state.nextId]: { message }
+        }
+      }),
+    },
+    removeTodo: {
+      payload: (id) => id,
+      reducer: (state, action) => ({
+        ...state,
+        todos: {
+          ...state.todos,
+          [state.nextId]: undefined
+        }
+      }),
+    }
+  },
+});
 ```
