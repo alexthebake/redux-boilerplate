@@ -2,6 +2,12 @@ import { bindActionCreators } from 'redux';
 import createReducer from './createReducer';
 import { actionName } from './actionTypes';
 
+function normalizeArgs(args) {
+  if (args.length === 0) return undefined;
+  if (args.length === 1) return args[0];
+  return args;
+}
+
 export default class BasicStore {
   constructor({ name, initialState, actions = {} }) {
     this.name = name;
@@ -46,11 +52,15 @@ export default class BasicStore {
     const actionType = actionName(this.name, name);
     this.actions[name] = {
       action: (...args) => {
+        let finalPayload = payload;
+        if (_.isUndefined(payload)) {
+          finalPayload = normalizeArgs(args);
+        } else if (_.isFunction(payload)) {
+          finalPayload = payload(...args);
+        }
         return {
           type: actionType,
-          payload: _.isFunction(payload)
-            ? payload(...args)
-            : payload,
+          payload: finalPayload,
         }
       },
       reducers: { [actionType]: reducer }
