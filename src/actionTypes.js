@@ -1,19 +1,21 @@
+import changeCase from 'change-case';
+
 export function actionName(...blocks) {
-  return _.map(blocks, block => `[${block}]`).join('');
+  return changeCase.constantCase(blocks.join('_'));
 }
 
 export function ajaxActionType(actionType) {
   return {
-    LOADING: `${actionType}[LOADING]`,
-    SUCCESS: `${actionType}[SUCCESS]`,
-    FAILURE: `${actionType}[FAILURE]`,
+    LOADING: changeCase.constantCase(`${actionType}_LOADING`),
+    SUCCESS: changeCase.constantCase(`${actionType}_SUCCESS`),
+    FAILURE: changeCase.constantCase(`${actionType}_FAILURE`),
   };
 }
 
 export function promiseActionType(type) {
   return {
-    LOADING: `[${type}][LOADING]`,
-    SUCCESS: `[${type}][SUCCESS]`,
-    FAILURE: `[${type}][FAILURE]`,
+    LOADING: changeCase.constantCase(`${type}_LOADING`),
+    SUCCESS: changeCase.constantCase(`${type}_SUCCESS`),
+    FAILURE: changeCase.constantCase(`${type}_FAILURE`),
   };
 }
