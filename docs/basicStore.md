@@ -2,66 +2,79 @@
 The BasicStore allows you to define multiple action creators and reducers in
 the same file.
 
-## Setup
-1. Define your store
+## API
+### `constructor({ name, initialState, actions = {} })`
+BasicStores take an options object with the following shape:
 ```javascript
-/** app/stores/myStore.js */
-import { BasicStore } from '@thebasement/redux-boilerplate';
+/**
+ * @param  {string}  options.name         Name of store
+ * @param  {*}       options.initialState Initial state for store
+ * @param  {Object=} [options.actions={}] Actions to initialize store with
+ */
+```
 
-export default new BasicStore({
-  actions: {
-    foo: {
-      // ...
-    }
-  }
+#### Example
+```javascript
+const counterStore = new BasicStore({
+  name: 'counter',
+  initialState: 0,
 });
 ```
 
-2. Create reducer for store
+### `addAction({ name, payload = undefined, reducer })`
 ```javascript
-/** app/reducers/index.js */
-import { combineReducers } from 'redux';
-import myStore from '../stores/myStore';
+/**
+ * @param  {string}   options.name    Name of action
+ * @param  {*=}       options.payload Payload to send with action
+ * @param  {function} options.reducer Reducer to handle action
+ */
+```
 
-export default combineReducers({
-  // ...
-  myStore: myStore.createReducer(),
+#### Examples
+**No payload**
+```javascript
+counterStore.addAction({
+  name: 'increment',
+  reducer: (state) => state + 1,
+});
+```
+**Implicit payload**
+```javascript
+counterStore.addAction({
+  name: 'increment',
+  reducer: (state, action) => state + action.payload,
+});
+```
+**Explicit payload**
+```javascript
+counterStore.addAction({
+  name: 'increment',
+  payload; (i = 1) => i,
+  reducer: (state, action) => state + action.payload,
 });
 ```
 
-3. Bind action creators
+**Constant payload**
 ```javascript
-/** app/components/AppContainer.jsx */
-import { connect } from 'redux';
-import App from './App';
-
-function mapStateToProps(state) {
-  // ...
-}
-
-function mapDispatchToProps(dispatch) {
-  const actions = {};
-  // ...
-  actions.myStore = myStore.bindActionCreators(dispatch);
-  return actions;
-}
-
-// ...
-export default connect(mapStateToProps, mapDispatchToProps)(App);
+counterStore.addAction({
+  name: 'increment',
+  payload: 1,
+  reducer: (state, action) => state + action.payload,
+});
 ```
 
 ## Usage
 ### Calling Actions
 ```javascript
-actions.myStore.foo();
+actions.counter.increment()
 ```
 
-### Accessing the Store
+### Accessing state
 ```javascript
-store.myStore
+store.counter
 ```
 
-## Examples
+## Store Examples
 ### Simple Counter
 ```javascript
 const counterStore = new BasicStore({
@@ -69,16 +82,10 @@ const counterStore = new BasicStore({
   initialState: 0,
   actions: {
     increment: {
-      reducer: state => state + 1,
+      reducer: (state) => state + 1,
     },
   },
 });
-
-// Incrementing
-actions.counterStore.increment()
-
-// Accessing Counter
-store.counterStore.counter
 ```
 
 ### Counter with Args
@@ -95,13 +102,13 @@ const counterStore = new BasicStore({
 });
 ```
 
-### Classic TODO
+### To-Do List
 ```javascript
 const todoStore = new BasicStore({
   name: 'todo',
   initialState: {
     nextId: 0,
-    todos: {}
+    list: []
   },
   actions: {
     addTodo: {
@@ -109,22 +116,27 @@ const todoStore = new BasicStore({
       reducer: (state, action) => ({
         ...state,
         nextId: state.nextId + 1,
-        todos: {
-          ...state.todos,
-          [state.nextId]: { message }
-        }
+        list: [
+          ...state.list,
+          {
+            id: state.nextId,
+            message: action.payload,
+            completed: false,
+          }
+        ],
       }),
     },
-    removeTodo: {
+    toggleTodo: {
       payload: (id) => id,
       reducer: (state, action) => ({
         ...state,
-        todos: {
-          ...state.todos,
-          [state.nextId]: undefined
-        }
+        list: state.list.map(todo =>
+          (todo.id === action.payload)
+            ? { ...todo, completed: !todo.completed }
+            : todo
+        )
       }),
-    }
+    },
   },
 });
 ```

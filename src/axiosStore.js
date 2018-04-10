@@ -2,11 +2,14 @@ import axios from 'axios';
 import requestKey from './requestKey';
 import PromiseStore from './promiseStore';
 import { AJAX_INITIAL_STATE } from './constants';
-import { mergeConfigs } from './utils';
-import { actionName } from './actionTypes';
 
-function updatedRequests(state, action) {
-  const { context } = action;
+function getRequestConfig(args, request) {
+  return _.isFunction(request)
+    ? request(...args)
+    : request;
+}
+
+function updatedRequests(state, context) {
   const { key } = context;
   const cachedRequest = state.requests[key];
   if (_.isUndefined(cachedRequest)) {
@@ -14,7 +17,7 @@ function updatedRequests(state, action) {
   }
   return {
     ...state.requests,
-    [key]: { ...cachedRequest, ...context }
+    [key]: { ...cachedRequest, ...context },
   };
 }
 
@@ -22,32 +25,32 @@ function defaultDataUpdater(state) {
   return state.data;
 }
 
-export function defaultReducer(status, dataUpdater) {
+export function defaultUpdater(status, dataUpdater) {
   switch (status) {
     case 'loading':
-      return (state, action) => ({
+      return (state, context) => ({
         ...state,
         loading: true,
-        requests: updatedRequests(state, action),
+        requests: updatedRequests(state, context),
       });
     case 'success':
-      return (state, action) => ({
+      return (state, response, context) => ({
         ...state,
         loaded: true,
         loading: false,
-        data: dataUpdater(state, action),
-        requests: updatedRequests(state, action),
+        data: dataUpdater(state, response),
+        requests: updatedRequests(state, context),
       });
     case 'failure':
-      return (state, action) => ({
+      return (state, error, context) => ({
         ...state,
         loaded: true,
         loading: false,
-        error: action.payload,
-        requests: updatedRequests(state, action),
+        error,
+        requests: updatedRequests(state, context),
       });
     default:
-      return (state) => ({ ...state });
+      return state => ({ ...state });
   }
 }
 
@@ -65,9 +68,12 @@ class AxiosStore extends PromiseStore {
     });
     this.config = config;
     this.primaryKey = primaryKey;
-    _.forEach(actions, (config, name) => {
-      if (!config.request) return;
-      this.addAxiosAction({ name, ...config });
+    _.forEach(actions, (actionConfig, actionName) => {
+      if (!actionConfig.request) return;
+      this.addAxiosAction({
+        name: actionName,
+        ...actionConfig,
+      });
     });
   }
 
@@ -79,60 +85,60 @@ class AxiosStore extends PromiseStore {
     name,
     request,
     dataUpdater = defaultDataUpdater,
-    loadingReducer,
-    successReducer,
-    failureReducer,
-    success = (args) => args,
-    failure = (args) => args,
+    success = args => args,
+    failure = args => args,
+    loadingUpdater,
+    successUpdater,
+    failureUpdater,
   }) {
-    const getRequestConfig = (args, request) => {
-      return _.isFunction(request) ? request(...args) : request;
-    }
     this.addPromiseAction({
       name,
       promiseCallback: (...args) => {
         const requestConfig = getRequestConfig(args, request);
-        return axios.request({ ...requestConfig, ...this.axiosConfig })
-          .then(success)
-          .catch(failure)
+        return axios.request({ ...this.axiosConfig, ...requestConfig })
+          .then(response => ((response.statusText === 'OK')
+            ? success(response)
+            : Promise.reject(response))).catch(error =>
+            Promise.reject(failure(error)));
       },
-      confirmSuccess: (response) => (response.statusText === "OK"),
       loadingContext: (promise, ...args) => ({
         key: requestKey(getRequestConfig(args, request)),
         status: 'loading',
+        startTime: new Date(),
         promise,
         args,
       }),
       successContext: (response, ...args) => ({
         key: requestKey(getRequestConfig(args, request)),
         status: 'success',
+        endTime: new Date(),
         response,
         args,
       }),
       failureContext: (response, ...args) => ({
         key: requestKey(getRequestConfig(args, request)),
         status: 'failure',
+        endTime: new Date(),
         response,
         args,
       }),
-      loadingReducer: _.isFunction(loadingReducer)
-        ? loadingReducer
-        : defaultReducer('loading'),
-      successReducer: _.isFunction(successReducer)
-        ? successReducer
-        : defaultReducer('success', (state, action) =>
-            dataUpdater(state, action, this.primaryKey)
-          ),
-      failureReducer: _.isFunction(failureReducer)
-        ? failureReducer
-        : defaultReducer('failure'),
-    })
+      loadingUpdater: _.isFunction(loadingUpdater)
+        ? loadingUpdater
+        : defaultUpdater('loading'),
+      successUpdater: _.isFunction(successUpdater)
+        ? successUpdater
+        : defaultUpdater('success', (state, response) =>
+          dataUpdater(state, response, this.primaryKey)),
+      failureUpdater: _.isFunction(failureUpdater)
+        ? failureUpdater
+        : defaultUpdater('failure'),
+    });
   }
 }
 
 AxiosStore.config = {};
 AxiosStore.setConfig = (config) => {
-  AxiosStore.config = config
+  AxiosStore.config = config;
 };
 
 export default AxiosStore;

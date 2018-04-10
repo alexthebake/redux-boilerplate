@@ -1,69 +1,40 @@
-import { bindActionCreators } from 'redux';
-import createReducer from './createReducer';
-import { actionName } from './actionTypes';
+import BaseStore from './baseStore';
+import * as actionTypes from './actionTypes';
 
-function normalizeArgs(args) {
-  if (args.length === 0) return undefined;
-  if (args.length === 1) return args[0];
-  return args;
-}
-
-export default class BasicStore {
+export default class BasicStore extends BaseStore {
   constructor({ name, initialState, actions = {} }) {
-    this.name = name;
-    this.initialState = initialState;
-    this.actions = {};
-    _.forEach(actions, (config, name) => {
-      if (!config.reducer) return;
-      this.addAction({ name, ...config });
+    super({ name, initialState, actions });
+    _.forEach(actions, (actionConfig, actionName) => {
+      if (_.isFunction(actionConfig)) {
+        this.addAction({
+          name: actionName,
+          updater: actionConfig,
+        });
+      }
+      if (_.isFunction(actionConfig.thunk)) {
+        this.addThunkAction({
+          name: actionName,
+          ...actionConfig,
+        });
+      }
     });
   }
 
-  get actionCreators() {
-    let actionCreators = {};
-    _.forEach(this.actions, ({ action }, name) => {
-      actionCreators[name] = action;
-    });
-    return actionCreators;
-  }
-
-  get actionHandlers() {
-    let actionHandlers = {};
-    _.forEach(this.actions, ({ reducers }, name) => {
-      if (_.isEmpty(reducers)) return;
-      actionHandlers = { ...actionHandlers, ...reducers };
-    });
-    return actionHandlers;
-  }
-
-  bindActionCreators(dispatch) {
-    return bindActionCreators(this.actionCreators, dispatch);
-  }
-
-  createReducer() {
-    return createReducer(this.initialState, this.actionHandlers);
-  }
-
-  addAction({
-    name,
-    payload,
-    reducer,
-  }) {
-    const actionType = actionName(this.name, name);
-    this.actions[name] = {
-      action: (...args) => {
-        let finalPayload = payload;
-        if (_.isUndefined(payload)) {
-          finalPayload = normalizeArgs(args);
-        } else if (_.isFunction(payload)) {
-          finalPayload = payload(...args);
-        }
-        return {
-          type: actionType,
-          payload: finalPayload,
-        }
+  addAction({ name, updater }) {
+    const actionType = actionTypes.actionName(this.name, name);
+    this.addBaseAction({
+      name,
+      action: (...args) => ({ type: actionType, payload: args }),
+      reducers: {
+        [actionType]: (state, action) => updater(state, ...action.payload),
       },
-      reducers: { [actionType]: reducer }
-    };
+    });
+  }
+
+  addThunkAction({ name, thunk }) {
+    this.addBaseAction({
+      name,
+      action: (...args) => thunk(...args)(this.actionCreators),
+    });
   }
 }

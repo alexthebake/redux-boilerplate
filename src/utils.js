@@ -3,7 +3,7 @@ export function mergeConfigs(args, config) {
   if (_.has(args, 'config')) {
     finalArgs = {
       ...finalArgs,
-      config: { ...args.config, ...config }
+      config: { ...args.config, ...config },
     };
   } else {
     finalArgs.config = config;

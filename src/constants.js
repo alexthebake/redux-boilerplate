@@ -4,5 +4,4 @@ export const AJAX_INITIAL_STATE = {
   error: {},
   data: {},
   requests: {},
-  options: {},
 };

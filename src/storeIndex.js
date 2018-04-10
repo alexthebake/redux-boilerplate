@@ -4,7 +4,7 @@ export default class StoreIndex {
   }
 
   createReducers() {
-    let reducers = {};
+    const reducers = {};
     _.forEach(this.stores, (store) => {
       reducers[store.name] = store.createReducer();
     });
@@ -12,7 +12,7 @@ export default class StoreIndex {
   }
 
   bindActionCreators(dispatch) {
-    let actions = {};
+    const actions = {};
     _.forEach(this.stores, (store) => {
       actions[store.name] = store.bindActionCreators(dispatch);
     });

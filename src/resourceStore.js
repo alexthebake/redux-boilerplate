@@ -1,20 +1,22 @@
 import requestKey from './requestKey';
-import AxiosStore, { defaultReducer } from './axiosStore';
-import { mergeConfigs } from './utils';
+import AxiosStore, { defaultUpdater } from './axiosStore';
 import {
   unionById,
   removeById,
-  addOrUpdateById
+  addOrUpdateById,
 } from './dataUpdaters';
 import { AJAX_INITIAL_STATE } from './constants';
 
+const NUM_PLACEHOLDERS = 2;
+const empty = _.times(NUM_PLACEHOLDERS, _.constant(_));
+
 function getPreviousRequest(
   resourceState,
-  { url, data = {}, method = "GET" }
+  { url, data = {}, method = 'GET' },
 ) {
-  if (_.isUndefined(resourceState)) return;
+  if (_.isUndefined(resourceState)) return null;
   const { requests } = resourceState;
-  if (_.isUndefined(requests)) return;
+  if (_.isUndefined(requests)) return null;
   const key = requestKey({ url, data, method });
   return requests[key];
 }
@@ -35,13 +37,16 @@ export default class ResourceStore extends AxiosStore {
     actions = {},
     config = {},
     primaryKey = 'id',
-    parent = undefined
+    parent = undefined,
   }) {
-    super({ name, config, actions, primaryKey });
+    super({
+      name, config, actions, primaryKey,
+    });
     this.endpoint = endpoint;
     this.parent = parent;
     this.nestedStores = {};
     this.defineActions();
+    this.defineRootAction();
   }
 
   defineActions() {
@@ -53,10 +58,25 @@ export default class ResourceStore extends AxiosStore {
     this.defineOptionsActions();
   }
 
+  defineRootAction() {
+    this.rootActionCreator = (id, ...nestedIds) => (dispatch) => {
+      const nestedActions = {};
+      _.forEach(this.nestedStores, (store, name) => {
+        const rootActionCreator = store.bindActionCreators(dispatch);
+        const newActions = _.partialRight(rootActionCreator, ...empty, id, ...nestedIds);
+        _.forEach(rootActionCreator, (action, actionName) => {
+          newActions[actionName] = _.partialRight(action, ...empty, id, ...nestedIds);
+        });
+        nestedActions[name] = newActions;
+      });
+      return nestedActions;
+    };
+  }
+
   defineIndexActions() {
     this.addAxiosAction({
       name: 'forceIndex',
-      request: (query = {}, _empty, ...nestedIds) => ({
+      request: (query = {}, ...nestedIds) => ({
         url: this.getEndpoint(nestedIds),
         data: query,
       }),
@@ -65,16 +85,16 @@ export default class ResourceStore extends AxiosStore {
     });
     this.addThunkAction({
       name: 'index',
-      thunk: (query = {}, _empty, ...nestedIds) => (actions) => (dispatch, getState) => {
+      thunk: (query = {}, ...nestedIds) => actions => (dispatch, getState) => {
         const resourceState = this.getResourceState(getState(), nestedIds);
         const previousRequest = getPreviousRequest(resourceState, {
           url: this.getEndpoint(nestedIds),
-          data: query
+          data: query,
         });
-        switch (_.get(previousRequest, "status")) {
-          case "loading":
+        switch (_.get(previousRequest, 'status')) {
+          case 'loading':
             return previousRequest.promise.then(axiosToResourceResponse);
-          case "success":
+          case 'success': // eslint-disable-line no-case-declarations
             // It's possible that the data we successfully fetched before has been
             // updated. To avoid returning stale data, we grab the ids from the
             // previous request and get the latest resource objects.
@@ -93,15 +113,15 @@ export default class ResourceStore extends AxiosStore {
   defineShowActions() {
     this.addAxiosAction({
       name: 'forceShow',
-      request: (id, _empty, ...nestedIds) => ({
-        url: `${this.getEndpoint(nestedIds)}${id}`
+      request: (id, ...nestedIds) => ({
+        url: `${this.getEndpoint(nestedIds)}${id}/`,
       }),
       success: axiosToResourceResponse,
       ...this.resourceReducers(addOrUpdateById),
     });
     this.addThunkAction({
       name: 'show',
-      thunk: (id, _empty, ...nestedIds) => (actions) => (dispatch, getState) => {
+      thunk: (id, ...nestedIds) => actions => (dispatch, getState) => {
         const resourceState = this.getResourceState(getState(), nestedIds);
         // It's possible that the resource may already be in the store, even if a
         // show request for `id` hasn't yet been made. If it's already present, we
@@ -112,10 +132,10 @@ export default class ResourceStore extends AxiosStore {
         }
 
         const previousRequest = getPreviousRequest(resourceState, {
-          url: `${this.getEndpoint(nestedIds)}${id}`
+          url: `${this.getEndpoint(nestedIds)}${id}`,
         });
-        switch (_.get(previousRequest, "status")) {
-          case "loading":
+        switch (_.get(previousRequest, 'status')) {
+          case 'loading':
             return previousRequest.promise.then(axiosToResourceResponse);
           default:
             return dispatch(actions.forceShow(id, undefined, ...nestedIds));
@@ -127,7 +147,7 @@ export default class ResourceStore extends AxiosStore {
   defineCreateActions() {
     this.addAxiosAction({
       name: 'create',
-      request: (params = {}, _empty, ...nestedIds) => ({
+      request: (params = {}, ...nestedIds) => ({
         url: this.getEndpoint(nestedIds),
         data: params,
         method: 'POST',
@@ -140,8 +160,8 @@ export default class ResourceStore extends AxiosStore {
   defineUpdateActions() {
     this.addAxiosAction({
       name: 'update',
-      request: (id, updates = {}, nestedId) => ({
-        url: `${this.getEndpoint(nestedIds)}${id}`,
+      request: (id, updates = {}, ...nestedIds) => ({
+        url: `${this.getEndpoint(nestedIds)}${id}/`,
         data: updates,
         method: 'PUT',
       }),
@@ -153,9 +173,9 @@ export default class ResourceStore extends AxiosStore {
   defineDeleteActions() {
     this.addAxiosAction({
       name: 'delete',
-      request: (id, _empty, ...nestedIds) => ({
-        url: `${this.getEndpoint(nestedIds)}${id}`,
-        method: 'DELETE'
+      request: (id, ...nestedIds) => ({
+        url: `${this.getEndpoint(nestedIds)}${id}/`,
+        method: 'DELETE',
       }),
       success: axiosToResourceResponse,
       ...this.resourceReducers(removeById),
@@ -165,11 +185,11 @@ export default class ResourceStore extends AxiosStore {
   defineOptionsActions() {
     this.addAxiosAction({
       name: 'options',
-      request: (_empty1, _empty2, ...nestedIds) => ({
+      request: (...nestedIds) => ({
         url: this.getEndpoint(nestedIds),
         method: 'OPTIONS',
       }),
-      successReducer: (state, action) => ({
+      successUpdater: (state, action) => ({
         ...state,
         options: action.payload.data,
       }),
@@ -183,9 +203,8 @@ export default class ResourceStore extends AxiosStore {
   }
 
   getEndpoint(nestedIds) {
-    if (!this.parent) return this.endpoint;
     return _.isFunction(this.endpoint)
-      ? this.endpoint(...nestedIds)
+      ? this.endpoint(..._.compact(nestedIds))
       : this.endpoint;
   }
 
@@ -200,45 +219,68 @@ export default class ResourceStore extends AxiosStore {
   getNestedStatePath(nestedIds, path = []) {
     // TODO: Figure out a more robust way to do this.
     if (!this.parent) return path.join('.');
+    const ids = _.compact(nestedIds);
     const thisName = _.last(this.name.split('.'));
-    const nestedId = _.head(nestedIds);
-    const remainingIds = _.tail(nestedIds);
+    const nestedId = _.head(ids);
+    const remainingIds = _.tail(ids);
     return this.parent.getNestedStatePath(
       remainingIds,
-      [thisName, nestedId, ...path]
+      [thisName, nestedId, ...path],
     );
   }
 
   resourceReducers(dataUpdater) {
-    const pkDataUpdater = (state, action) =>
-      dataUpdater(state.data, action.payload.data, this.primaryKey);
+    const pkDataUpdater = (state, response) =>
+      dataUpdater(state.data, response.data, this.primaryKey);
     if (!this.parent) {
       // For top level resources, just the dataUpdater will suffice.
       return { dataUpdater: pkDataUpdater };
     }
     return {
-      loadingReducer: (state, action) =>
-        this.updateNestedState(state, action, 'loading'),
-      successReducer: (state, action) =>
-        this.updateNestedState(state, action, 'success', pkDataUpdater),
-      failureReducer: (state, action) =>
-        this.updateNestedState(state, action, 'failure'),
+      loadingUpdater: (state, context) =>
+        this.updateNestedState({
+          status: 'loading',
+          state,
+          context,
+        }),
+      successUpdater: (state, data, context) =>
+        this.updateNestedState({
+          status: 'success',
+          state,
+          data,
+          context,
+          dataUpdater: pkDataUpdater,
+        }),
+      failureUpdater: (state, data, context) =>
+        this.updateNestedState({
+          status: 'failure',
+          state,
+          data,
+          context,
+        }),
     };
   }
 
-  updateNestedState(state, action, status, dataUpdater) {
-    const nestedIds = _.slice(action.context.args, 2);
+  updateNestedState({
+    status,
+    state,
+    data = null,
+    context = null,
+    dataUpdater = null,
+  }) {
+    const nestedIds = _.slice(context.args, NUM_PLACEHOLDERS);
     const newState = { ...state };
     const nestedPath = this.getNestedStatePath(nestedIds);
     const nestedState = {
       ...AJAX_INITIAL_STATE,
       ..._.get(newState, nestedPath, {}),
     };
+
     _.setWith(
       newState,
       nestedPath,
-      defaultReducer(status, dataUpdater)(nestedState, action),
-      Object
+      defaultUpdater(status, dataUpdater)(nestedState, data || context, context),
+      Object,
     );
     return newState;
   }
@@ -253,27 +295,16 @@ export default class ResourceStore extends AxiosStore {
   addNestedResource({
     name,
     endpoint,
-    primaryKey = 'id'
+    primaryKey = 'id',
   }) {
     const nestedStore = new ResourceStore({
       parent: this,
       name: `${this.name}.${name}`,
       endpoint: (id, ...nestedIds) =>
         `${this.getEndpoint(nestedIds)}${id}${endpoint}`,
-      primaryKey
+      primaryKey,
     });
     this.nestedStores[name] = nestedStore;
-    this.addNestedActionHandlers(nestedStore)
-    this.addThunkAction({
-      name,
-      thunk: (id, _empty, ...nestedIds) => (actions) => (dispatch) => {
-        const actionCreators = nestedStore.bindActionCreators(dispatch);
-        let newActions = {};
-        _.forEach(actionCreators, (action, name) => {
-          newActions[name] = _.partialRight(action, _, _, id, ...nestedIds);
-        });
-        return newActions;
-      }
-    });
+    this.addNestedActionHandlers(nestedStore);
   }
 }
