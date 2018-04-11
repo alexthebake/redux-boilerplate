@@ -2,15 +2,15 @@
 ## Setup
 1. Define your store
 ```javascript
-/** app/stores/myStore.js */
+/** app/stores/counter.js */
 import { BasicStore } from '@thebasement/redux-boilerplate';
 
 export default new BasicStore({
+  name: 'counter',
+  initalState: 0,
   actions: {
-    foo: {
-      // ...
-    }
-  }
+    increment: (state, i) => state + i,
+  },
 });
 ```
 
@@ -18,11 +18,11 @@ export default new BasicStore({
 ```javascript
 /** app/reducers/index.js */
 import { combineReducers } from 'redux';
-import myStore from '../stores/myStore';
+import counter from '../stores/counter';
 
 export default combineReducers({
   // ...
-  myStore: myStore.createReducer(),
+  counter: counter.createReducer(),
 });
 ```
 
@@ -39,7 +39,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
   const actions = {};
   // ...
-  actions.myStore = myStore.bindActionCreators(dispatch);
+  actions.counter = counter.bindActionCreators(dispatch);
   return actions;
 }
 
@@ -48,12 +48,10 @@ export default connect(mapStateToProps, mapDispatchToProps)(App);
 ```
 
 ## Usage
-### Calling Actions
 ```javascript
-actions.myStore.foo();
-```
+// Calling actions
+actions.counter.increment();
 
-### Accessing the Store
-```javascript
-store.myStore
+// Accessing the Store
+store.counter // returns 1
 ```

@@ -10,12 +10,19 @@ describe('BaseStore', () => {
     const initialState = { data: [1, 2, 3] };
     const appendAction = {
       name: 'append',
-      action: (i) => ({ type: 'TEST_APPEND', payload: i }),
+      action: i => ({ type: 'TEST_APPEND', payload: i }),
       reducers: {
         TEST_APPEND: (state, action) => ({
           ...state,
-          data: [...state.data, action.payload]
+          data: [...state.data, action.payload],
         }),
+      },
+    };
+    const resetAction = {
+      name: 'reset',
+      action: () => ({ type: 'TEST_RESET' }),
+      reducers: {
+        TEST_RESET: () => initialState,
       },
     };
 
@@ -42,9 +49,28 @@ describe('BaseStore', () => {
         expect(testStore.initialState).to.eq(initialState);
       });
 
+      it('sets root action creator to null', () => {
+        expect(testStore.rootActionCreator).to.eq(null);
+      });
+
       it('adds base actions', () => {
         expect(BaseStore.prototype.addBaseAction)
           .to.have.been.calledWithMatch(appendAction);
+      });
+
+      describe('when no actions', () => {
+        beforeEach(() => {
+          BaseStore.prototype.addBaseAction.reset();
+          testStore = new BaseStore({ name, initialState });
+        });
+
+        it('sets empty actions', () => {
+          expect(testStore.actions).to.be.empty;
+        });
+
+        it('does not add base actions', () => {
+          expect(BaseStore.prototype.addBaseAction).to.not.have.been.called;
+        });
       });
     });
 
@@ -63,9 +89,8 @@ describe('BaseStore', () => {
     describe('bindActionCreators', () => {
       const dispatch = sinon.stub();
 
-      let boundActionCreators;
       beforeEach(() => {
-        boundActionCreators = testStore.bindActionCreators(dispatch);
+        testStore.bindActionCreators(dispatch);
       });
 
       it('binds action creators to dispatch', () => {
@@ -75,14 +100,49 @@ describe('BaseStore', () => {
     });
 
     describe('createReducer', () => {
-      let reducer;
       beforeEach(() => {
-        reducer = testStore.createReducer();
+        testStore.createReducer();
       });
 
       it('creates reducer with initial state and action handlers', () => {
         expect(createReducer.default)
           .to.have.been.calledWith(testStore.initialState, testStore.actionHandlers);
+      });
+    });
+
+    describe('addBaseAction', () => {
+      beforeEach(() => {
+        testStore.addBaseAction(resetAction);
+      });
+
+      it('adds actionConfig to actions by name', () => {
+        const { action, reducers } = resetAction;
+        expect(testStore.actions[resetAction.name]).to.eql({ action, reducers });
+      });
+    });
+
+    describe('defineBaseActions', () => {
+      const fakeAction = {
+        name: 'fakeAction',
+        invalid: 'base action config',
+      };
+
+      beforeEach(() => {
+        BaseStore.prototype.addBaseAction.reset();
+        testStore.defineBaseActions({
+          [resetAction.name]: resetAction,
+          [fakeAction.name]: fakeAction,
+        });
+      });
+
+      it('adds baseActions from actionConfigs', () => {
+        expect(BaseStore.prototype.addBaseAction)
+          .to.have.been.calledWithMatch(resetAction);
+      });
+
+      it('does not add actionConfigs that are not baseActions', () => {
+        expect(BaseStore.prototype.addBaseAction)
+          .to.not.have.been.calledWithMatch(fakeAction);
       });
     });
   });
