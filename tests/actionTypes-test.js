@@ -1,5 +1,6 @@
 import {
-  ajaxActionType,
+  actionName,
+  promiseActionType,
 } from '../src/actionTypes';
 
 const actionType = 'TEST_ACTION';
@@ -7,8 +8,20 @@ const actionType = 'TEST_ACTION';
 describe('actionTypes', () => {
   let type;
 
-  describe('ajaxActionType', () => {
-    type = ajaxActionType(actionType);
+  describe('actionName', () => {
+    beforeEach(() => {
+      type = actionName('foo', 'bar');
+    });
+
+    it('returns constant case action name', () => {
+      expect(type).to.eq('FOO_BAR');
+    });
+  });
+
+  describe('promiseActionType', () => {
+    beforeEach(() => {
+      type = promiseActionType(actionType);
+    });
 
     it('returns an object with ajax status keys', () => {
       expect(type).to.have.property('LOADING');

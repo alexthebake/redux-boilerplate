@@ -1,7 +1,11 @@
-import { ajaxActionType } from './actionTypes';
 import createReducer from './createReducer';
-import dispatchAjaxAction from './dispatchAjaxAction';
-import handleAjaxAction from './handleAjaxAction';
+import requestKey from './requestKey';
+import BaseStore from './baseStore';
+import BasicStore from './basicStore';
+import PromiseStore from './promiseStore';
+import AxiosStore from './axiosStore';
+import ResourceStore from './resourceStore';
+import StoreIndex from './storeIndex';
 import {
   removeById,
   unionById,
@@ -12,15 +16,20 @@ import {
 } from './constants';
 
 export {
-  createReducer,
-  dispatchAjaxAction,
-  handleAjaxAction,
-  // Action types
-  ajaxActionType,
   // Data updaters
   removeById,
   unionById,
   addOrUpdateById,
   // Constants
   AJAX_INITIAL_STATE,
+  // Misc
+  requestKey,
+  createReducer,
+  // Stores
+  BaseStore,
+  BasicStore,
+  PromiseStore,
+  AxiosStore,
+  ResourceStore,
+  StoreIndex,
 };

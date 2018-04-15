@@ -16,10 +16,10 @@ export function removeById(oldData, id) {
  * @param  {Array}  newData Array of new data from the server
  * @return {Object}         oldData with new data overwriting by id
  */
-export function unionById(oldData, newData) {
+export function unionById(oldData, newData, key = 'id') {
   const data = { ...oldData };
   _.forEach(newData, (resource) => {
-    data[resource.id] = resource;
+    data[resource[key]] = resource;
   });
   return data;
 }
@@ -30,6 +30,6 @@ export function unionById(oldData, newData) {
  * @param  {Object} resource Singular resource from the server
  * @return {Object}          oldData with resource overwriting by id
  */
-export function addOrUpdateById(oldData, resource) {
-  return unionById(oldData, [resource]);
+export function addOrUpdateById(oldData, resource, key = 'id') {
+  return unionById(oldData, [resource], key);
 }
