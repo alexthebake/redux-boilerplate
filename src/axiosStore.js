@@ -25,30 +25,42 @@ function defaultDataUpdater(state) {
   return state.data;
 }
 
+export function axiosLoadingUpdater() {
+  return (state, context) => ({
+    ...state,
+    loading: true,
+    requests: updatedRequests(state, context),
+  });
+}
+
+export function axiosSuccessUpdater(dataUpdater) {
+  return (state, response, context) => ({
+    ...state,
+    loaded: true,
+    loading: false,
+    data: dataUpdater(state, response),
+    requests: updatedRequests(state, context),
+  });
+}
+
+export function axiosFailureUpdater() {
+  return (state, error, context) => ({
+    ...state,
+    loaded: true,
+    loading: false,
+    error,
+    requests: updatedRequests(state, context),
+  });
+}
+
 export function defaultUpdater(status, dataUpdater) {
   switch (status) {
     case 'loading':
-      return (state, context) => ({
-        ...state,
-        loading: true,
-        requests: updatedRequests(state, context),
-      });
+      return axiosLoadingUpdater();
     case 'success':
-      return (state, response, context) => ({
-        ...state,
-        loaded: true,
-        loading: false,
-        data: dataUpdater(state, response),
-        requests: updatedRequests(state, context),
-      });
+      return axiosSuccessUpdater(dataUpdater);
     case 'failure':
-      return (state, error, context) => ({
-        ...state,
-        loaded: true,
-        loading: false,
-        error,
-        requests: updatedRequests(state, context),
-      });
+      return axiosFailureUpdater();
     default:
       return state => ({ ...state });
   }
@@ -96,10 +108,12 @@ class AxiosStore extends PromiseStore {
       promiseCallback: (...args) => {
         const requestConfig = getRequestConfig(args, request);
         return axios.request({ ...this.axiosConfig, ...requestConfig })
-          .then(response => ((response.statusText === 'OK')
-            ? success(response)
-            : Promise.reject(response))).catch(error =>
-            Promise.reject(failure(error)));
+          .then((response) => {
+            if (response.statusText === 'OK') {
+              return success(response);
+            }
+            return Promise.reject(response);
+          }).catch(error => Promise.reject(failure(error)));
       },
       loadingContext: (promise, ...args) => ({
         key: requestKey(getRequestConfig(args, request)),

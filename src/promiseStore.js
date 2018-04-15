@@ -11,20 +11,12 @@ export default class PromiseStore extends BasicStore {
     });
   }
 
-  getPromiseActions(actionType) {
-    return {
-      LOADING: this.actionCreators[actionType.LOADING],
-      SUCCESS: this.actionCreators[actionType.SUCCESS],
-      FAILURE: this.actionCreators[actionType.FAILURE],
-    };
-  }
-
   addPromiseAction({
     name,
     promiseCallback,
-    loadingContext = (promise, args) => ([promise, ...args]),
-    successContext = (result, args) => ([result, ...args]),
-    failureContext = (error, args) => ([error, ...args]),
+    loadingContext = (promise, args = []) => ([promise, ...args]),
+    successContext = (result, args = []) => ([result, ...args]),
+    failureContext = (error, args = []) => ([error, ...args]),
     loadingUpdater = state => state,
     successUpdater = state => state,
     failureUpdater = state => state,
@@ -44,24 +36,28 @@ export default class PromiseStore extends BasicStore {
     });
     this.addThunkAction({
       name,
-      thunk: (...args) => () => (dispatch) => {
-        const promiseActions = this.getPromiseActions(actionType);
+      thunk: (...args) => (actions) => {
+        const promiseActions = {
+          LOADING: actions[actionType.LOADING],
+          SUCCESS: actions[actionType.SUCCESS],
+          FAILURE: actions[actionType.FAILURE],
+        };
         const promise = promiseCallback(...args)
           .then((result) => {
-            dispatch(promiseActions.SUCCESS(
+            promiseActions.SUCCESS(
               result,
               successContext(result, ...args),
-            ));
+            );
             return result;
           })
           .catch((error) => {
-            dispatch(promiseActions.FAILURE(
+            promiseActions.FAILURE(
               error,
               failureContext(error, ...args),
-            ));
+            );
             return error;
           });
-        dispatch(promiseActions.LOADING(loadingContext(promise, ...args)));
+        promiseActions.LOADING(loadingContext(promise, ...args));
         return promise;
       },
     });

@@ -8,7 +8,7 @@ import configureMockStore from 'redux-mock-store';
 import BasicStore from '../src/basicStore';
 
 function delay(data, timeout = 10) {
-  return new Promise(resolve => setTimeout(() => resolve(data), 10));
+  return new Promise(resolve => setTimeout(() => resolve(data), timeout));
 }
 
 describe('BasicStore', () => {
@@ -18,11 +18,9 @@ describe('BasicStore', () => {
     const initialState = { data: [1, 2, 3] };
     const appendAction = (state, i) => ({
       ...state,
-      data: [...state.data, action.payload],
+      data: [...state.data, i],
     });
-    const appendThunk = (i) => (actions) => (dispatch) => {
-      return dispatch(actions.append(i));
-    };
+    const appendThunk = i => boundActions => boundActions.append(i);
 
     beforeEach(() => {
       sinon.spy(BasicStore.prototype, 'addAction');
@@ -54,6 +52,21 @@ describe('BasicStore', () => {
         expect(BasicStore.prototype.addThunkAction).to.have.been.calledWithMatch({
           name: 'appendThunk',
           thunk: appendThunk,
+        });
+      });
+
+      describe('when no actions', () => {
+        beforeEach(() => {
+          BasicStore.prototype.addAction.reset();
+          testStore = new BasicStore({ name, initialState });
+        });
+
+        it('sets empty actions', () => {
+          expect(testStore.actions).to.be.empty;
+        });
+
+        it('does not add base actions', () => {
+          expect(BasicStore.prototype.addAction).to.not.have.been.called;
         });
       });
     });
@@ -115,7 +128,7 @@ describe('BasicStore', () => {
           data: null,
         },
         actions: {
-          loading: (state) => ({ ...state, loading: true }),
+          loading: state => ({ ...state, loading: true }),
           success: (state, data) => ({
             ...state,
             data,
@@ -123,10 +136,10 @@ describe('BasicStore', () => {
             loading: false,
           }),
           performAsync: {
-            thunk: () => (actions) => (dispatch) => {
-              dispatch(actions.loading());
+            thunk: () => (boundActions) => {
+              boundActions.loading();
               return delay(expectedData).then((result) => {
-                dispatch(actions.success(result));
+                boundActions.success(result);
                 return result;
               });
             },
@@ -157,7 +170,7 @@ describe('BasicStore', () => {
       });
 
       it('updates state', () => {
-        return actions.performAsync().then((result) => {
+        return actions.performAsync().then(() => {
           expect(store.getState().async).to.eql({
             loaded: true,
             loading: false,

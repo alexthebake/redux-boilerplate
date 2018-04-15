@@ -34,7 +34,10 @@ export default class BasicStore extends BaseStore {
   addThunkAction({ name, thunk }) {
     this.addBaseAction({
       name,
-      action: (...args) => thunk(...args)(this.actionCreators),
+      action: (...args) => (dispatch, getState) => {
+        const actions = this.bindActionCreators(dispatch);
+        return thunk(...args)(actions, getState);
+      },
     });
   }
 }

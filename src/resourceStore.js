@@ -85,7 +85,7 @@ export default class ResourceStore extends AxiosStore {
     });
     this.addThunkAction({
       name: 'index',
-      thunk: (query = {}, ...nestedIds) => actions => (dispatch, getState) => {
+      thunk: (query = {}, ...nestedIds) => (actions, getState) => {
         const resourceState = this.getResourceState(getState(), nestedIds);
         const previousRequest = getPreviousRequest(resourceState, {
           url: this.getEndpoint(nestedIds),
@@ -104,7 +104,7 @@ export default class ResourceStore extends AxiosStore {
             );
             return resourceResponse(200, data);
           default:
-            return dispatch(actions.forceIndex(query, undefined, ...nestedIds));
+            return actions.forceIndex(query, undefined, ...nestedIds);
         }
       },
     });
@@ -121,7 +121,7 @@ export default class ResourceStore extends AxiosStore {
     });
     this.addThunkAction({
       name: 'show',
-      thunk: (id, ...nestedIds) => actions => (dispatch, getState) => {
+      thunk: (id, ...nestedIds) => (actions, getState) => {
         const resourceState = this.getResourceState(getState(), nestedIds);
         // It's possible that the resource may already be in the store, even if a
         // show request for `id` hasn't yet been made. If it's already present, we
@@ -138,7 +138,7 @@ export default class ResourceStore extends AxiosStore {
           case 'loading':
             return previousRequest.promise.then(axiosToResourceResponse);
           default:
-            return dispatch(actions.forceShow(id, undefined, ...nestedIds));
+            return actions.forceShow(id, undefined, ...nestedIds);
         }
       },
     });

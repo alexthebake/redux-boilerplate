@@ -13,9 +13,9 @@ const randomPromiseStore = new PromiseStore({
   actions: {
     call: {
       promiseCallback: () => randomPromise(),
-      successReducer: (state, action) => ({
+      successUpdater: (state, response) => ({
         ...state,
-        data: action.payload,
+        data: response.data,
       }),
     },
   },
@@ -35,21 +35,21 @@ const resourceStore = new PromiseStore({
   actions: {
     index: {
       promiseCallback: () => axios.get('/api/resource/'),
-      loadingReducer: (state) => ({
+      loadingUpdater: (state) => ({
         ...state,
         loading: true,
       }),
-      successReducer: (state, action) => ({
+      successUpdater: (state, response) => ({
         ...state,
         loaded: true,
         loading: false,
-        data: action.payload.data,
+        data: response.data,
       }),
-      failureReducer: (state, action) => ({
+      failureUpdater: (state, response) => ({
         ...state,
         loaded: true,
         loading: false,
-        error: action.payload,
+        error: response.data,
       }),
     },
   },
