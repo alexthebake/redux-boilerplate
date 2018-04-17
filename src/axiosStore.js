@@ -108,12 +108,8 @@ class AxiosStore extends PromiseStore {
       promiseCallback: (...args) => {
         const requestConfig = getRequestConfig(args, request);
         return axios.request({ ...this.axiosConfig, ...requestConfig })
-          .then((response) => {
-            if (response.statusText === 'OK') {
-              return success(response);
-            }
-            return Promise.reject(response);
-          }).catch(error => Promise.reject(failure(error)));
+          .then(success)
+          .catch(failure);
       },
       loadingContext: (promise, ...args) => ({
         key: requestKey(getRequestConfig(args, request)),

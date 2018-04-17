@@ -189,9 +189,9 @@ export default class ResourceStore extends AxiosStore {
         url: this.getEndpoint(nestedIds),
         method: 'OPTIONS',
       }),
-      successUpdater: (state, action) => ({
+      successUpdater: (state, response) => ({
         ...state,
-        options: action.payload.data,
+        options: response.data,
       }),
     });
   }
