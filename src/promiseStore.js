@@ -1,6 +1,15 @@
 import BasicStore from './basicStore';
 import { promiseActionType } from './actionTypes';
 
+const DEFAULTS = {
+  loadingContext: (promise, args = []) => ([promise, ...args]),
+  successContext: (result, args = []) => ([result, ...args]),
+  failureContext: (error, args = []) => ([error, ...args]),
+  loadingUpdater: state => state,
+  successUpdater: state => state,
+  failureUpdater: state => state,
+};
+
 export default class PromiseStore extends BasicStore {
   constructor(args) {
     super(args);
@@ -14,12 +23,12 @@ export default class PromiseStore extends BasicStore {
   addPromiseAction({
     name,
     promiseCallback,
-    loadingContext = (promise, args = []) => ([promise, ...args]),
-    successContext = (result, args = []) => ([result, ...args]),
-    failureContext = (error, args = []) => ([error, ...args]),
-    loadingUpdater = state => state,
-    successUpdater = state => state,
-    failureUpdater = state => state,
+    loadingContext = DEFAULTS.loadingContext,
+    successContext = DEFAULTS.successContext,
+    failureContext = DEFAULTS.failureContext,
+    loadingUpdater = DEFAULTS.loadingUpdater,
+    successUpdater = DEFAULTS.successUpdater,
+    failureUpdater = DEFAULTS.failureUpdater,
   }) {
     const actionType = promiseActionType(name);
     this.addAction({

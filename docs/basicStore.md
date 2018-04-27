@@ -3,13 +3,13 @@ BasicStore provides updater actions and thunk actions that simplify the redux
 API.
 
 ## API
-### `constructor({ name, initialState, actions = {} })`
+### `constructor`
 BasicStores take an options object with the following shape:
 ```javascript
 /**
- * @param  {string} options.name         Name of store
- * @param  {*}      options.initialState Initial state for store
- * @param  {object} [options.actions={}] Actions to initialize store with
+ * @param {string} options.name         Name of store
+ * @param {*}      options.initialState Initial state for store
+ * @param {object} [options.actions={}] Actions to initialize store with
  */
 ```
 
@@ -24,13 +24,23 @@ const counterStore = new BasicStore({
 });
 ```
 
-### `addAction({ name, payload = undefined, reducer })`
+### `addAction`
 ```javascript
 /**
- * @param  {string}   options.name    Name of action
- * @param  {function} options.updater Updater function
+ * @param {string}   options.name    Name of action
+ * @param {function} options.updater Updater function
  */
 ```
+
+The updater function looks like this:
+```javascript
+updater = (state, ...args) => newState;
+```
+
+When the action is invoked, are the arguments passed to the action are funneled
+into the `...args` portion of the updater function and available for updating
+the store's state.
+
 
 #### Examples
 ```javascript

@@ -15,6 +15,7 @@ BasicStores take an options object with the following shape:
 
 #### Example
 ```javascript
+const INCREMENT = 'INCREMENT';
 const counterStore = new BaseStore({
   name: 'counter',
   initialState: 0,
@@ -22,12 +23,12 @@ const counterStore = new BaseStore({
     increment: {
       action: (i = 1) => {
         return {
-          type: 'INCREMENT',
+          type: INCREMENT,
           payload: i,
         };
       },
       reducers: {
-        INCREMENT: (state, action) => {
+        [INCREMENT]: (state, action) => {
           return state + action.payload;
         };
       },
