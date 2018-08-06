@@ -56,7 +56,6 @@ export default class ResourceStore extends AxiosStore {
     this.defineCreateActions();
     this.defineDeleteActions();
     this.defineOptionsActions();
-    this.defineFlushAction();
   }
 
   defineRootAction() {
