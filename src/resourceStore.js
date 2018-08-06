@@ -1,5 +1,5 @@
 import requestKey from './requestKey';
-import AxiosStore, { defaultUpdater } from './axiosStore';
+import AxiosStore, { defaultAxiosUpdater } from './axiosStore';
 import {
   unionById,
   removeById,
@@ -56,6 +56,7 @@ export default class ResourceStore extends AxiosStore {
     this.defineCreateActions();
     this.defineDeleteActions();
     this.defineOptionsActions();
+    this.defineFlushAction();
   }
 
   defineRootAction() {
@@ -191,6 +192,7 @@ export default class ResourceStore extends AxiosStore {
       }),
       successUpdater: (state, response) => ({
         ...state,
+        loading: false,
         options: response.data,
       }),
     });
@@ -279,7 +281,7 @@ export default class ResourceStore extends AxiosStore {
     _.setWith(
       newState,
       nestedPath,
-      defaultUpdater(status, dataUpdater)(nestedState, data || context, context),
+      defaultAxiosUpdater(status, dataUpdater)(nestedState, data || context, context),
       Object,
     );
     return newState;
